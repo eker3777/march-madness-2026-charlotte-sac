@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+results/
+data/source/MMasseyOrdinals.csv
+data/source/combined_team_box_scores.csv
+data/source/combined_team_box_scores.parquet
+data/source/combined_team_box_scores_team_summary.csv
