@@ -1,11 +1,6 @@
 # March Madness GAM – Club Share Data Documentation
 
-<<<<<<< HEAD
-This repo publishes six club-share CSV datasets (paired men/women) for student modeling:
-=======
-This has 3 datasets for visualization & modeling:
->>>>>>> 8c434d019aed8eac5a89d72fca7df0eda9e646f4
-
+This repo publishes six CSV datasets for modeling & Visualization:
 - Men: `data/processed/club_share/m_historical_matchups_2005_2025.csv`
 - Women: `data/processed/club_share/w_historical_matchups_2014_2025.csv`
 - Men: `data/processed/club_share/m_modeling_matchups_2026_all_possible.csv`
@@ -52,7 +47,7 @@ One row per tournament matchup.
 | Team2_TeamName | Team2 name. |
 | Team1_Seed | Team1 seed string (e.g., `X03`, `Z16a`). |
 | Team2_Seed | Team2 seed string. |
-| Diff_SeedNum | Seed advantage (`Team2_SeedNum - Team1_SeedNum`) |
+| Diff_SeedNumBase | Seed advantage (`Team2_SeedNum - Team1_SeedNum`) |
 | Target_Team1Win | Binary outcome target. |
 | Team1_Color | ESPN primary team color for Team1. |
 | Team1_AlternateColor | ESPN alternate team color for Team1. |
