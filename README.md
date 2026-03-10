@@ -1,21 +1,27 @@
 # March Madness GAM – Club Share Data Documentation
 
-This repo publishes three club-share datasets for student modeling:
+This repo publishes six club-share CSV datasets (paired men/women) for student modeling:
 
-- `data/processed/club_share/historical_matchups_2005_2025.csv` (+ `.parquet`)
-- `data/processed/club_share/modeling_matchups_2026_all_possible.csv` (+ `.parquet`)
-- `data/processed/club_share/team_aggregates_2005_2026.csv` (+ `.parquet`)
+- Men: `data/processed/club_share/m_historical_matchups_2005_2025.csv`
+- Women: `data/processed/club_share/w_historical_matchups_2014_2025.csv`
+- Men: `data/processed/club_share/m_modeling_matchups_2026_all_possible.csv`
+- Women: `data/processed/club_share/w_modeling_matchups_2026_all_possible.csv`
+- Men: `data/processed/club_share/m_team_aggregates_2005_2026.csv`
+- Women: `data/processed/club_share/w_team_aggregates_2014_2026.csv`
 
 ## Scope
 
-- **Historical matchups:** 2005–2025 NCAA tournament matchups (one row per played game)
-- **2026 modeling matchups:** all possible seeded 2026 tournament pairings (one row per seeded pair)
-- **Team aggregates:** 2005–2026 team-season features (one row per team-season)
+- **Men historical matchups:** 2005–2025 NCAA tournament matchups (one row per played game)
+- **Women historical matchups:** 2014–2025 NCAA tournament matchups (one row per played game)
+- **Men 2026 modeling matchups:** all possible seeded 2026 tournament pairings (one row per seeded pair)
+- **Women 2026 modeling matchups:** all possible seeded 2026 tournament pairings (one row per seeded pair)
+- **Men team aggregates:** 2005–2026 team-season features (one row per team-season)
+- **Women team aggregates:** 2014–2026 team-season features (one row per team-season)
 - **Target for matchup models:** `Target_Team1Win` (1 if Team1 wins, else 0)
 
 ## Design choice: same advanced metrics in both files
 
-Both exports use the **same advanced metric bases**:
+Both men/women exports use the **same advanced metric bases and column ordering by file type**:
 
 - In matchups: each appears as `Diff_<Metric>` (Team1 minus Team2)
 - In team aggregates: each appears as `<Metric>`
@@ -24,7 +30,7 @@ This keeps feature engineering consistent for 2026 tournament modeling.
 
 ---
 
-## Dataset 1: historical_matchups_2005_2025
+## Dataset 1: historical_matchups (M/W)
 
 ### Row grain
 One row per tournament matchup.
@@ -113,7 +119,7 @@ One row per tournament matchup.
 
 ---
 
-## Dataset 2: team_aggregates_2005_2026
+## Dataset 2: team_aggregates (M/W)
 
 ### Row grain
 One row per team-season.
@@ -135,7 +141,7 @@ Same metric bases as above, but **without** the `Diff_` prefix (team-level value
 
 ---
 
-## Dataset 3: modeling_matchups_2026_all_possible
+## Dataset 3: modeling_matchups_2026_all_possible (M/W)
 
 ### Row grain
 One row per seeded, all-possible 2026 team matchup (not just games that were played).
@@ -151,9 +157,9 @@ One row per seeded, all-possible 2026 team matchup (not just games that were pla
 
 ## Quick modeling note for students
 
-- Use `historical_matchups_2005_2025` to train matchup models (`Target_Team1Win`).
-- Use `modeling_matchups_2026_all_possible` when scoring/simulating all 2026 seeded matchup combinations.
-- Use `team_aggregates_2005_2026` for team-level analysis and feature inspection.
+- Use `m_historical_matchups_2005_2025` and/or `w_historical_matchups_2014_2025` to train matchup models (`Target_Team1Win`).
+- Use `m_modeling_matchups_2026_all_possible` and/or `w_modeling_matchups_2026_all_possible` when scoring/simulating all 2026 seeded matchup combinations.
+- Use `m_team_aggregates_2005_2026` and/or `w_team_aggregates_2014_2026` for team-level analysis and feature inspection.
 
 ## Student Modeling Prompts (Guidelines, Not Answers)
 
