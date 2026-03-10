@@ -30,6 +30,12 @@ This keeps feature engineering consistent for 2026 tournament modeling.
 
 ---
 
+## The Rating Systems: Massey vs. Colley
+- Massey Ratings (Margin-Based): Developed by Kenneth Massey, this system is built on the principle that the difference in ratings between two teams should represent the expected margin of victory. It uses a system of linear equations to solve for team strength based on how much they outscore their opponents. It is highly sensitive to dominant performances and offensive/defensive efficiency.
+- Colley Matrix (Win-Based): Created by Wesley Colley, this system is independent of margin of victory. It relies strictly on wins and losses, using a modified version of the Laplace Succession Rule ($1+w / 2+n$). It addresses strength of schedule by adjusting a team’s rating based on the ratings of the teams they beat. It is a "zero-sum" matrix that is robust against blowouts and focuses on the "purity" of the win.
+
+---
+
 ## Dataset 1: historical_matchups (M/W)
 
 ### Row grain
