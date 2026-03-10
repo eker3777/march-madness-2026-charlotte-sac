@@ -1,6 +1,10 @@
 # March Madness GAM – Club Share Data Documentation
 
+<<<<<<< HEAD
 This repo publishes six club-share CSV datasets (paired men/women) for student modeling:
+=======
+This has 3 datasets for visualization & modeling:
+>>>>>>> 8c434d019aed8eac5a89d72fca7df0eda9e646f4
 
 - Men: `data/processed/club_share/m_historical_matchups_2005_2025.csv`
 - Women: `data/processed/club_share/w_historical_matchups_2014_2025.csv`
@@ -24,6 +28,7 @@ This repo publishes six club-share CSV datasets (paired men/women) for student m
 Both men/women exports use the **same advanced metric bases and column ordering by file type**:
 
 - In matchups: each appears as `Diff_<Metric>` (Team1 minus Team2)
+- Team1 is always the higher seed. In same-seed matchups the team with the better Massey score is Team1
 - In team aggregates: each appears as `<Metric>`
 
 This keeps feature engineering consistent for 2026 tournament modeling.
@@ -47,7 +52,7 @@ One row per tournament matchup.
 | Team2_TeamName | Team2 name. |
 | Team1_Seed | Team1 seed string (e.g., `X03`, `Z16a`). |
 | Team2_Seed | Team2 seed string. |
-| Diff_SeedNum | Seed advantage (`Team2_SeedNum - Team1_SeedNum`), positive means Team1 better-seeded. |
+| Diff_SeedNum | Seed advantage (`Team2_SeedNum - Team1_SeedNum`) |
 | Target_Team1Win | Binary outcome target. |
 | Team1_Color | ESPN primary team color for Team1. |
 | Team1_AlternateColor | ESPN alternate team color for Team1. |
@@ -62,10 +67,10 @@ One row per tournament matchup.
 |---|---|
 | Adj_Massey | Seed-adjusted Massey residual. |
 | Adj_Seed | Rating-implied adjusted seed. |
-| Colley_Momentum | Absolute Colley momentum from baseline to Selection Sunday snapshot. |
+| Colley_Momentum | Absolute Colley difference in final 30 days before Selection Sunday (how much did the team improve over the last month of the season?) |
 | Final_Colley | Final Colley rating. |
 | Final_Massey | Final Massey rating. |
-| Massey_Momentum | Absolute Massey momentum from baseline to Selection Sunday snapshot. |
+| Massey_Momentum | Absolute Colley difference in final 30 days before Selection Sunday (how much did the team improve over the last month of the season?) |
 | Relative_Colley_Momentum | Relative Colley momentum ratio. |
 | Relative_Massey_Momentum | Relative Massey momentum ratio. |
 | SeedNum | Numeric seed (with play-in adjustment). |
@@ -144,24 +149,24 @@ Same metric bases as above, but **without** the `Diff_` prefix (team-level value
 ## Dataset 3: modeling_matchups_2026_all_possible (M/W)
 
 ### Row grain
-One row per seeded, all-possible 2026 team matchup (not just games that were played).
+One row per seeded, all-possible 2026 team matchups based on bracket (2016 in total).
 
 ### Construction rules
 
 - Matchups are generated from 2026 teams with usable seed info.
 - Team orientation follows modeling rules: better seed first, then higher Massey, then lower TeamID.
 - `Diff_*` columns are computed as Team1 minus Team2, except `Diff_SeedNum`, which is `Team2_SeedNum - Team1_SeedNum` so positive values still indicate a Team1 seed advantage.
-- This file is separate from historical played-game data and is intended for 2026 simulation/model scoring workflows.
+- This file is separate from historical played-game data and is intended for 2026 simulation/model workflows.
 
 ---
 
-## Quick modeling note for students
+## Quick modeling notes
 
 - Use `m_historical_matchups_2005_2025` and/or `w_historical_matchups_2014_2025` to train matchup models (`Target_Team1Win`).
 - Use `m_modeling_matchups_2026_all_possible` and/or `w_modeling_matchups_2026_all_possible` when scoring/simulating all 2026 seeded matchup combinations.
 - Use `m_team_aggregates_2005_2026` and/or `w_team_aggregates_2014_2026` for team-level analysis and feature inspection.
 
-## Student Modeling Prompts (Guidelines, Not Answers)
+## Modeling  Guidelines
 
 Use these as checkpoints while building your own visuals/models in the demo notebook.
 
@@ -181,7 +186,7 @@ Use these as checkpoints while building your own visuals/models in the demo note
 
 - Is one metric enough to evaluate your model for this use case?
 - If you use accuracy, what happens in years where favorites dominate the bracket?
-- Which additional metrics (for example AUC, log loss, calibration) help you understand probability quality?
+- Which additional metrics (for example AUC, log loss, calibration, upset detection) help you understand probability quality?
 
 ### 4) Upset-focused error analysis (`Target_Team1Win = 0`)
 
