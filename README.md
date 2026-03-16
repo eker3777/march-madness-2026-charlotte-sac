@@ -1,202 +1,80 @@
-# March Madness – Club Share Data Documentation
+# March Madness GAM - Club Share Data Documentation
 
-This repo publishes six CSV datasets for modeling & Visualization:
-- Men: `data/processed/club_share/m_historical_matchups_2005_2025.csv`
-- Women: `data/processed/club_share/w_historical_matchups_2014_2025.csv`
-- Men: `data/processed/club_share/m_modeling_matchups_2026_all_possible.csv`
-- Women: `data/processed/club_share/w_modeling_matchups_2026_all_possible.csv`
-- Men: `data/processed/club_share/m_team_aggregates_2005_2026.csv`
-- Women: `data/processed/club_share/w_team_aggregates_2014_2026.csv`
+This repository publishes club-share datasets used by the notebook workflows.
 
-## Scope
+## Club-share outputs
 
-- **Men historical matchups:** 2005–2025 NCAA tournament matchups (one row per played game)
-- **Women historical matchups:** 2014–2025 NCAA tournament matchups (one row per played game)
-- **Men 2026 modeling matchups:** all possible seeded 2026 tournament pairings (one row per seeded pair)
-- **Women 2026 modeling matchups:** all possible seeded 2026 tournament pairings (one row per seeded pair)
-- **Men team aggregates:** 2005–2026 team-season features (one row per team-season)
-- **Women team aggregates:** 2014–2026 team-season features (one row per team-season)
-- **Target for matchup models:** `Target_Team1Win` (1 if Team1 wins, else 0)
+- Men historical matchups: `data/processed/club_share/m_historical_matchups_2005_2025.csv`
+- Women historical matchups: `data/processed/club_share/w_historical_matchups_2014_2025.csv`
+- Men all-possible 2026 modeling matchups: `data/processed/club_share/m_modeling_matchups_2026_all_possible.csv`
+- Women all-possible 2026 modeling matchups: `data/processed/club_share/w_modeling_matchups_2026_all_possible.csv`
+- Men first-round 68-team candidate matchups: `data/processed/club_share/m_first_round_matchups_2026_68team_candidates.csv`
+- Women first-round 68-team candidate matchups: `data/processed/club_share/w_first_round_matchups_2026_68team_candidates.csv`
+- Men team aggregates: `data/processed/club_share/m_team_aggregates_2005_2026.csv`
+- Women team aggregates: `data/processed/club_share/w_team_aggregates_2014_2026.csv`
+- 2026 seeding helper workbook: `data/processed/club_share/2026_Seeding.xlsx`
 
-## Design choice: same advanced metrics in both files
+## Scope and row grain
 
-Both men/women exports use the **same advanced metric bases and column ordering by file type**:
+- Historical matchups files: one row per played NCAA tournament game.
+- All-possible modeling matchup files: one row per seeded Team1-Team2 pair for 2026.
+- First-round candidate files: one row per first-round candidate pairing, including expanded play-in alternate rows.
+- Team aggregate files: one row per team-season.
 
-- In matchups: each appears as `Diff_<Metric>` (Team1 minus Team2)
-- Team1 is always the higher seed. In same-seed matchups the team with the better Massey score is Team1
-- In team aggregates: each appears as `<Metric>`
+## Orientation conventions
 
-This keeps feature engineering consistent for 2026 tournament modeling.
+### Historical and all-possible matchup files
 
----
+- Team orientation uses a modeling-first contract.
+- `Team1` is the stronger bracket side by orientation rule (better seed, then tiebreakers).
+- `Target_Team1Win` exists in historical matchups and is the matchup-model target.
+- Most feature columns are `Diff_*` and are computed as `Team1 - Team2`.
+- `Diff_SeedNum` is intentionally flipped to preserve seed-advantage semantics in modeling.
 
-## The Rating Systems: Massey vs. Colley
-- Massey Ratings (Margin-Based): Developed by Kenneth Massey, this system is built on the principle that the difference in ratings between two teams should represent the expected margin of victory. It uses a system of linear equations to solve for team strength based on how much they outscore their opponents. It is highly sensitive to dominant performances and offensive/defensive efficiency.
-- Colley Matrix (Win-Based): Created by Wesley Colley, this system is independent of margin of victory. It relies strictly on wins and losses, using a modified version of the Laplace Succession Rule ($1+w / 2+n$). It addresses strength of schedule by adjusting a team’s rating based on the ratings of the teams they beat. It is a "zero-sum" matrix that is robust against blowouts and focuses on the "purity" of the win.
+### First-round candidate files
 
----
+- These files are for first-round visualization and simulation prep.
+- Row orientation is explicit:
+- `Favorite*` columns represent the lower numeric seed side.
+- `Underdog*` columns represent the higher numeric seed side.
+- `HasPlayInPath`, `FavoriteIsAlternate`, and `UnderdogIsAlternate` identify play-in expansions.
+- `MatchupKey` is the canonical ordered TeamID pair key.
+- `InModelingFile` and `FavoriteMatchesModelTeam1` indicate whether and how each row maps to the all-possible matchup table.
+- Columns prefixed with `Model_` are copied from the mapped all-possible matchup row to keep the first-round file self-sufficient.
 
-## Dataset 1: historical_matchups (M/W)
+## Metric families
 
-### Row grain
-One row per tournament matchup.
+The same advanced metric bases are used across outputs.
 
-### Non-metric columns
+- Team aggregate files store team-level metrics directly (for example `Final_Massey`, `sos_adj_net_rating`, `three_factors_composite`).
+- Matchup files store the difference form (`Diff_<Metric>`).
+- First-round candidate files include both first-round row context and mapped modeling features (`Model_Diff_<Metric>`).
 
-| Column | Definition |
-|---|---|
-| Season | Tournament season year. |
-| DayNum | Kaggle season day index. |
-| Team1ID | Kaggle TeamID for Team1 (orientation used in modeling table). |
-| Team2ID | Kaggle TeamID for Team2. |
-| Team1_TeamName | Team1 name. |
-| Team2_TeamName | Team2 name. |
-| Team1_Seed | Team1 seed string (e.g., `X03`, `Z16a`). |
-| Team2_Seed | Team2 seed string. |
-| Diff_SeedNumBase | Seed advantage (`Team2_SeedNum - Team1_SeedNum`) |
-| Target_Team1Win | Binary outcome target. |
-| Team1_Color | ESPN primary team color for Team1. |
-| Team1_AlternateColor | ESPN alternate team color for Team1. |
-| Team1_Logo | ESPN logo filepath/URL for Team1. |
-| Team2_Color | ESPN primary team color for Team2. |
-| Team2_AlternateColor | ESPN alternate team color for Team2. |
-| Team2_Logo | ESPN logo filepath/URL for Team2. |
+## Team aggregate seed fields (2026)
 
-### Advanced metrics (all as `Diff_<Metric>`)
+The team aggregate files include seed metadata needed for downstream bracket logic:
 
-| Metric base | Definition |
-|---|---|
-| Adj_Massey | Seed-adjusted Massey residual. |
-| Adj_Seed | Rating-implied adjusted seed. |
-| Colley_Momentum | Absolute Colley difference in final 30 days before Selection Sunday (how much did the team improve over the last month of the season?) |
-| Final_Colley | Final Colley rating. |
-| Final_Massey | Final Massey rating. |
-| Massey_Momentum | Absolute Colley difference in final 30 days before Selection Sunday (how much did the team improve over the last month of the season?) |
-| Relative_Colley_Momentum | Relative Colley momentum ratio. |
-| Relative_Massey_Momentum | Relative Massey momentum ratio. |
-| SeedNum | Numeric seed (with play-in adjustment). |
-| SeedNumBase | Base numeric seed before play-in adjustment. |
-| SeedPlayInFlag | Indicator for play-in seed slot. |
-| TournamentPrestige_5Y_Decay | Decay-weighted prior 5-year tournament wins. |
-| adj_net_rating | Home/away-adjusted net efficiency. |
-| avg_ast_rate | Assist rate (`AST / FGM`). |
-| avg_ast_tov_ratio | Assist-to-turnover ratio. |
-| avg_blk_pct | Block percentage. |
-| avg_def_rating | Defensive rating (points allowed per 100 possessions). |
-| avg_drb_pct | Defensive rebound percentage. |
-| avg_efg_pct | Effective field-goal percentage. |
-| avg_ft_par | Free-throw attempt rate (`FTA / FGA`). |
-| avg_ft_pct | Free-throw percentage. |
-| avg_ft_score | Free-throw scoring efficiency (`FTM / FGA`). |
-| avg_net_rating_game | Raw net rating (`off_rating - def_rating`). |
-| avg_off_rating | Offensive rating (points per 100 possessions). |
-| avg_opp_ast_rate | Opponent assist rate allowed. |
-| avg_opp_blk_pct | Opponent block rate allowed. |
-| avg_opp_efg_pct | Opponent eFG allowed. |
-| avg_opp_massey | Average opponent Massey (SOS proxy). |
-| avg_opp_stl_pct | Opponent steal rate forced. |
-| avg_opp_tov_pct | Opponent turnover rate. |
-| avg_orb_pct | Offensive rebound percentage. |
-| avg_pf_per_poss | Personal fouls per possession. |
-| avg_possessions | Average possessions (pace). |
-| avg_stl_pct | Steal percentage. |
-| avg_three_par | Three-point attempt rate (`3PA / FGA`). |
-| avg_three_pct | Three-point percentage. |
-| avg_three_score | Expected points generated by 3-pointers per total Field Goal Attempt (`3 * 3_pct * 3_par`). |
-| avg_tov_pct | Turnover percentage. |
-| avg_trb_pct | Total rebound percentage. |
-| avg_ts_pct | True shooting percentage. |
-| away_net_rating | Away-game net rating. |
-| ceiling_score | Mean opponent Massey in top 5 wins (ceiling proxy). |
-| games_played | Games used for feature estimation. |
-| home_away_net_bias | Home minus away net-rating bias. |
-| home_net_rating | Home-game net rating. |
-| net_ast_rate | Net assist margin (`avg_ast_rate - avg_opp_ast_rate`). |
-| net_blk_pct | Net block margin (`avg_blk_pct - avg_opp_blk_pct`). |
-| net_efg | Net eFG margin (`avg_efg_pct - avg_opp_efg_pct`). |
-| net_reb | Net rebounding factor (`avg_orb_reb + avg_drb_reb`). |
-| net_stl_pct | Net steal margin (`avg_stl_pct - avg_opp_stl_pct`). |
-| net_tov | Net turnover factor (`avg_opp_tov_pct - avg_tov_pct`). |
-| playmaking_defense_composite | Composite from net AST/STL/BLK signals. |
-| pyth_win_pct | Pythagorean expected win %. |
-| sos_adj_net_rating | Strength of-schedule adjusted net rating. (`adj_net_rating + avg_opp_massey`) |
-| three_factors_composite | Composite from net eFG, net TOV, and rebounding. |
-| weighted_massey_momentum | `Relative_Massey_Momentum * log1p(games_played)`. |
+- `Seed`: seed code string when assigned.
+- `SeedNum`: seed number used in downstream logic.
+- `SeedNumBase`: base numeric seed before play-in handling.
+- `SeedRegion`: bracket region code.
+- `SeedPlayInSuffix`: play-in suffix marker where present.
+- `SeedPlayInFlag`: indicator for play-in seed slot.
 
----
+These fields are populated for both primary and alternate teams in 11/16 play-in slots.
 
-## Dataset 2: team_aggregates (M/W)
+## How notebooks use these files
 
-### Row grain
-One row per team-season.
+- Data prep notebook writes and refreshes all club-share exports.
+- Intro EDA notebooks primarily read team aggregates.
+- Advanced demo notebook reads:
+- historical matchups for model training,
+- all-possible 2026 matchups for probability lookup,
+- first-round candidate file for first-round visuals and bracket candidate wiring.
 
-### Non-metric columns
+## Quick modeling guidance
 
-| Column | Definition |
-|---|---|
-| Season | Season year. |
-| TeamID | Kaggle TeamID. |
-| TeamName | Team name. |
-| Seed | Seed string when available. |
-| TeamColor | ESPN primary team color. |
-| TeamAlternateColor | ESPN alternate team color. |
-| TeamLogo | ESPN logo filepath/URL. |
-
-### Advanced metrics
-Same metric bases as above, but **without** the `Diff_` prefix (team-level value).
-
----
-
-## Dataset 3: modeling_matchups_2026_all_possible (M/W)
-
-### Row grain
-One row per seeded, all-possible 2026 team matchups based on bracket (2016 in total).
-
-### Construction rules
-
-- Matchups are generated from 2026 teams with usable seed info.
-- Team orientation follows modeling rules: better seed first, then higher Massey, then lower TeamID.
-- `Diff_*` columns are computed as Team1 minus Team2, except `Diff_SeedNum`, which is `Team2_SeedNum - Team1_SeedNum` so positive values still indicate a Team1 seed advantage.
-- This file is separate from historical played-game data and is intended for 2026 simulation/model workflows.
-
----
-
-## Quick modeling notes
-
-- Use `m_historical_matchups_2005_2025` and/or `w_historical_matchups_2014_2025` to train matchup models (`Target_Team1Win`).
-- Use `m_modeling_matchups_2026_all_possible` and/or `w_modeling_matchups_2026_all_possible` when scoring/simulating all 2026 seeded matchup combinations.
-- Use `m_team_aggregates_2005_2026` and/or `w_team_aggregates_2014_2026` for team-level analysis and feature inspection.
-
-## Modeling  Guidelines
-
-Use these as checkpoints while building your own visuals/models in the demo notebook.
-
-### 1) Collinearity and logistic regression
-
-- Which `Diff_*` features are highly correlated with each other?
-- If two features tell almost the same story, which one will you keep and why?
-- How stable are your logistic coefficients when you remove or swap correlated features?
-
-### 2) Train/test strategy and validation design
-
-- Are you splitting randomly, or by season, and what assumption does that make?
-- How would your results change with year-based cross-validation (walk-forward style)?
-- Could you stratify folds using season-level upset rate so each fold has similar upset environments?
-
-### 3) "Best" metric question
-
-- Is one metric enough to evaluate your model for this use case?
-- If you use accuracy, what happens in years where favorites dominate the bracket?
-- Which additional metrics (for example AUC, log loss, calibration, upset detection) help you understand probability quality?
-
-### 4) Upset-focused error analysis (`Target_Team1Win = 0`)
-
-- How often does your model miss underdog wins?
-- Do misses cluster by seed range, conference strength, or matchup archetype?
-- What changes when you specifically inspect games where predicted winner is Team1 but actual target is `0`?
-
-### 5) Monte Carlo readiness checks
-
-- Does your model expose `predict_proba` so it can plug into simulation directly?
-- Are your predicted probabilities sensible and within `[0, 1]` for all simulated matchups?
-- After simulation, do your round advancement probabilities look coherent from round to round?
+- Train matchup models on historical matchup files (`Target_Team1Win`).
+- Score or simulate broad 2026 possibilities with all-possible matchup files.
+- Build first-round specific charts/tables from first-round candidate files.
+- Use team aggregate files for season-level analysis and feature inspection.
