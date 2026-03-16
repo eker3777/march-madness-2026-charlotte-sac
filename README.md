@@ -1,4 +1,4 @@
-# March Madness GAM – Club Share Data Documentation
+# March Madness – Club Share Data Documentation
 
 This repo publishes six CSV datasets for modeling & Visualization:
 - Men: `data/processed/club_share/m_historical_matchups_2005_2025.csv`
